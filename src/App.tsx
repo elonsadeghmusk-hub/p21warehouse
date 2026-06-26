@@ -215,7 +215,7 @@ export default function App() {
 
     if (currentUser?.role !== UserRole.ADMIN && (type === 'EXIT' || type === 'PPE')) {
       if (target?.delivererName !== currentUser?.fullName) {
-        toast.error('شما فقط مجاز به حذف اسناد ثبت شده توسط خودتان هستید.');
+        alert('شما فقط مجاز به حذف اسناد ثبت شده توسط خودتان هستید.');
         return;
       }
     }
@@ -234,7 +234,7 @@ export default function App() {
 
   const requestEdit = (record: ExitRecord) => {
     if (currentUser?.role !== UserRole.ADMIN && record.delivererName !== currentUser?.fullName) {
-      toast.error('شما فقط مجاز به ویرایش اسناد ثبت شده توسط خودتان هستید.');
+      alert('شما فقط مجاز به ویرایش اسناد ثبت شده توسط خودتان هستید.');
       return;
     }
     setEditingRecord(record);
@@ -457,7 +457,7 @@ export default function App() {
                   return { ...rec, items: newItems };
                 }),
               }));
-              toast.success('کد کالا با موفقیت تخصیص یافت');
+              alert('کد کالا با موفقیت تخصیص یافت و از لیست ثبت نشده‌ها خارج شد.');
             } : undefined}
           />
         )}
@@ -593,7 +593,6 @@ export default function App() {
       {aiOpen   && <AIAssistantOverlay onClose={() => setAiOpen(false)} products={products} exits={[...exits, ...ppeRecords]} recipients={recipients} />}
       <SignatureModal isOpen={signOpen} onClose={(sig: string | null) => { if (sig) setTempSig(sig);    setSignOpen(false); }} name="پرسنل" />
       <CameraModal   isOpen={camOpen}  onClose={(p:   string | null) => { if (p)   setTempPhoto(p);    setCamOpen(false);  }} />
-    <ToastContainer />
     </div>
   );
 }

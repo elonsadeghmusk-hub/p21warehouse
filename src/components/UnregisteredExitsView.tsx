@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { toast } from './Toast';
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle2, Search, Package, User, Calendar, Hash, ArrowRightLeft, Sparkles, Clock } from 'lucide-react';
 import { ExitRecord, Product } from '../types';
@@ -40,9 +39,9 @@ export const UnregisteredExitsView: React.FC<UnregisteredExitsViewProps> = ({ ex
 
   const handleConfirm = (recordId: string, itemIndex: number, key: string) => {
     const newCode = assigningCodes[key];
-    if (!newCode) { toast.warning('لطفاً کد کالا را وارد کنید'); return; }
+    if (!newCode) return alert('لطفاً کد کالا را وارد کنید');
     const product = products.find(p => p.code === newCode);
-    if (!product) { toast.confirm('این کد در انبار یافت نشد. آیا مطمئن هستید؟', () => { onAssignCode(recordId, itemIndex, newCode); const n = { ...assigningCodes }; delete n[key]; setAssigningCodes(n); setShowProductDrop(null); }); return; }
+    if (!product && !window.confirm('این کد در انبار یافت نشد. آیا مطمئن هستید؟')) return;
     onAssignCode(recordId, itemIndex, newCode);
     const n = { ...assigningCodes };
     delete n[key];

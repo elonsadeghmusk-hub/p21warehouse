@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { toast } from './Toast';
 import React, { useState, useEffect, useMemo } from 'react';
 import { PackagePlus, Plus, X, PenTool, Camera, Trophy, History, Edit3, Trash2, Check, ChevronDown, ChevronUp, FileText, Clock, User as UserIcon, Package } from 'lucide-react';
 import { Product, Recipient, ExitRecord, User } from '../types';
@@ -203,7 +202,7 @@ export const GeneralExitForm: React.FC<GeneralExitFormProps> = ({
             <input type="number" step="0.5" placeholder="تعداد" value={tempQty} onChange={e=>setTempQty(parseFloat(e.target.value))} className="w-20 input-glass p-3 text-center font-black text-lg text-cyan-400 shadow-inner" />
             <button onClick={()=>{ 
               if (noCode) {
-                if (!manualDescription.trim()) { toast.warning('لطفاً شرح کالا را وارد کنید'); return; }
+                if (!manualDescription.trim()) return alert('لطفاً شرح کالا را وارد کنید');
                 setBasket([{productCode: 'بدون کد', productDescription: manualDescription, category: 'تعریف نشده', quantity: tempQty, unit: 'عدد', isLoan, id: Date.now()}, ...basket]);
                 setManualDescription('');
               } else {
@@ -251,13 +250,13 @@ export const GeneralExitForm: React.FC<GeneralExitFormProps> = ({
           </button>
         </div>
         <button onClick={()=>{ 
-          if(!recipient || !basket.length) { toast.warning('تحویل‌گیرنده و حداقل یک کالا را وارد کنید'); return; } 
+          if(!recipient || !basket.length) return alert('اطلاعات ناقص'); 
           onSave({ id: Date.now().toString(), docNumber: docNum, items: basket, recipientName: recipient, orgUnit: recipientUnit, delivererName: currentUser.fullName, date: manualDate, timestamp: Date.now(), type:'EXIT', signature, photo, notes }); 
           setBasket([]); 
           setNotes(''); 
           setNoCode(false);
           setManualDescription('');
-          toast.success('سند با موفقیت ثبت و آرشیو شد'); 
+          alert('سند با موفقیت ثبت و آرشیو شد.'); 
         }} className="w-full bg-indigo-600 py-3.5 rounded-2xl font-black text-lg shadow-2xl transition-all active:scale-95 uppercase tracking-widest border-t border-white/20 hover:bg-indigo-500">
           تایید و بایگانی نهایی حواله خروج
         </button>

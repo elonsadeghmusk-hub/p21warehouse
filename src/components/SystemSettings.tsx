@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { toast } from './Toast';
 import React, { useState } from 'react';
 import {
   Database, Download, RefreshCcw, UserCog, UserPlus, UserMinus, ShieldCheck,
@@ -205,7 +204,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({
     a.download = `P21_Backup_${Date.now()}.json`;
     a.click();
     sendTelegramBackup(db);
-    toast.success('بک‌آپ صادر و به تلگرام ارسال شد');
+    alert('بک‌آپ صادر و به تلگرام ارسال شد.');
   };
 
   const activeCount = countActivePerms(draftPerms);
@@ -269,7 +268,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({
                   const reader = new FileReader();
                   reader.onload = (ev) => onRestore(JSON.parse(ev.target?.result as string));
                   reader.readAsText(file);
-                  toast.success('بازیابی اطلاعات با موفقیت انجام شد');
+                  alert('بازیابی اطلاعات با موفقیت انجام شد.');
                 }
               }} />
               <RefreshCcw size={22}/> بازیابی دیتابیس
@@ -554,7 +553,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({
               if (myNewMod) updated.modPassword = myNewMod;
               onUpdateUser(updated);
               setMyNewPass(''); setMyNewMod('');
-              toast.success('رمزها با موفقیت بروز شدند');
+              alert('رمزها با موفقیت بروز شدند.');
             }} className="w-full py-3 rounded-xl bg-indigo-600 font-black text-[11px] uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl border-t border-white/10 active:scale-95">
               ذخیره تغییرات
             </button>

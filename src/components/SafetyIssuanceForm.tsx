@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { toast } from './Toast';
 import React, { useState, useMemo } from 'react';
 import { HardHat, Briefcase, Zap, ShieldCheck, Eye, Wind, PenTool, Camera, Trophy, History, FileText, X, Edit3, Trash2, ChevronDown, Clock, User as UserIcon, Package } from 'lucide-react';
 import { Recipient, ExitRecord, User } from '../types';
@@ -184,7 +183,7 @@ export const SafetyIssuanceForm: React.FC<SafetyIssuanceFormProps> = ({
           <button onClick={onCamOpen} className={`py-3.5 rounded-2xl border border-dashed transition-all flex items-center justify-center gap-3 font-black text-[11px] uppercase tracking-widest shadow-lg ${photo ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' : 'border-white/20 text-white/40 hover:bg-white/5'}`}><Camera size={18}/> {photo ? 'تصویر ثبت شد' : 'تصویربرداری ضمیمه'}</button>
         </div>
         <div className="bg-black/40 p-5 rounded-2xl space-y-3 min-h-[80px] border border-white/5 shadow-inner">{basket.map(it=>(<div key={it.id} className="flex justify-between items-center bg-white/5 p-3 px-5 rounded-2xl border border-white/5 transition-all hover:bg-white/10 shadow-sm"><div className="flex flex-col"><span className="text-[13px] font-black text-emerald-400">{it.productDescription}</span><span className="text-[10px] opacity-50 font-black">{it.technicalSpecs}</span></div><button onClick={()=>setBasket(basket.filter(x=>x.id!==it.id))} className="text-red-500 hover:scale-125 transition-all p-2"><X size={20}/></button></div>))}</div>
-        <button onClick={()=>{ if(!recipient || !basket.length) { toast.warning('پرسنل و حداقل یک قلم را وارد کنید'); return; } onSave({ id: Date.now().toString(), docNumber: manualDocNum || `PPE-${Date.now().toString().slice(-4)}`, items: basket, recipientName: recipient, orgUnit: '', delivererName: currentUser.fullName, date: date, timestamp: Date.now(), type:'PPE', signature, photo, notes }); setBasket([]); setNotes(''); setManualDocNum(''); toast.success('پرونده ایمنی با موفقیت بایگانی شد'); }} className="w-full bg-emerald-600 py-4 rounded-[1.5rem] font-black text-xl shadow-2xl shadow-emerald-600/20 active:scale-95 transition-all border-t border-white/20 uppercase tracking-[0.2em]">تایید و بایگانی نهایی HSE</button>
+        <button onClick={()=>{ if(!recipient || !basket.length) return alert('اطلاعات ناقص'); onSave({ id: Date.now().toString(), docNumber: manualDocNum || `PPE-${Date.now().toString().slice(-4)}`, items: basket, recipientName: recipient, orgUnit: '', delivererName: currentUser.fullName, date: date, timestamp: Date.now(), type:'PPE', signature, photo, notes }); setBasket([]); setNotes(''); setManualDocNum(''); alert('پرونده ایمنی با موفقیت بایگانی شد.'); }} className="w-full bg-emerald-600 py-4 rounded-[1.5rem] font-black text-xl shadow-2xl shadow-emerald-600/20 active:scale-95 transition-all border-t border-white/20 uppercase tracking-[0.2em]">تایید و بایگانی نهایی HSE</button>
       </div>
 
       <div className="lg:col-span-4 space-y-6">

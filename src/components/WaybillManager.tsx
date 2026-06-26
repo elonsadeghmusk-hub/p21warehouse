@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { toast } from './Toast';
 import React, { useState, useRef } from 'react';
 import { Truck, Camera, Upload, FileText, Download, Trash2, Loader2, Sparkles, Maximize2, Minimize2, X, Calendar, Search, Edit3 } from 'lucide-react';
 import { Waybill, WaybillItem, User } from '../types';
@@ -66,7 +65,7 @@ items باید شامل تمام ردیف‌های جدول کالا باشد.`;
       const GEMINI_KEY = localStorage.getItem('p21_gemini_key') || '';
       if (!GEMINI_KEY) throw new Error('کلید API تنظیم نشده\nادمین باید در بخش سیستم، کلید را وارد کند');
       const geminiResp = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -109,7 +108,7 @@ items باید شامل تمام ردیف‌های جدول کالا باشد.` 
 
     } catch (error: any) {
       console.error('OCR Error:', error);
-      toast.error('خطا در استخراج: ' + (error.message || 'دوباره امتحان کن'));
+      alert('خطا در استخراج: ' + (error.message || 'دوباره امتحان کن'));
     } finally {
       setIsProcessing(false);
     }
@@ -117,7 +116,7 @@ items باید شامل تمام ردیف‌های جدول کالا باشد.` 
 
   const handleSave = () => {
     if (!docNumber || extractedItems.length === 0) {
-      toast.warning('لطفاً شماره بارنامه و حداقل یک قلم کالا را وارد کنید');
+      alert('لطفاً شماره بارنامه و حداقل یک قلم کالا را وارد کنید.');
       return;
     }
     const newWaybill: Waybill = {
@@ -143,7 +142,7 @@ items باید شامل تمام ردیف‌های جدول کالا باشد.` 
     setMachineHead('');
     setSeniorInCharge('');
     setEditingId(null);
-    toast.success(editingId ? 'تغییرات با موفقیت ذخیره شد' : 'بارنامه با موفقیت ثبت شد');
+    alert(editingId ? 'تغییرات با موفقیت ذخیره شد.' : 'بارنامه با موفقیت ثبت شد.');
   };
 
   const handleEdit = (wb: Waybill) => {

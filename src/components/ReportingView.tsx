@@ -2,7 +2,6 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import { toast } from './Toast';
 import React, { useState, useMemo } from 'react';
 import { BarChart2, Download, Search, Filter, Calendar, Tag, TrendingUp, Package, Users, RefreshCw, Eye, FileText, Zap } from 'lucide-react';
 import { ExitRecord, Product } from '../types';
@@ -94,7 +93,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ exits, products, o
   const clear = ()=>{ setQ('');setCat('');setType('');setRecip('');setStartDate(null);setEndDate(null); };
 
   const exportXLSX = () => {
-    if(!filtered.length){ toast.warning('داده‌ای برای خروجی وجود ندارد'); return; }
+    if(!filtered.length){ alert('داده‌ای برای خروجی وجود ندارد'); return; }
     const rows:any[]=[];
     filtered.forEach(e=>e.items.forEach(it=>rows.push({
       'شماره سند':e.docNumber,
