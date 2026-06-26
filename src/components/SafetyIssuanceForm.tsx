@@ -1,0 +1,336 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { toast } from './Toast';
+import React, { useState, useMemo } from 'react';
+import { HardHat, Briefcase, Zap, ShieldCheck, Eye, Wind, PenTool, Camera, Trophy, History, FileText, X, Edit3, Trash2, ChevronDown, Clock, User as UserIcon, Package } from 'lucide-react';
+import { Recipient, ExitRecord, User } from '../types';
+
+interface SafetyIssuanceFormProps {
+  recipients: Recipient[];
+  currentUser: User;
+  history: ExitRecord[];
+  onRecordClick: (record: ExitRecord) => void;
+  onEdit: (record: ExitRecord) => void;
+  onDelete: (id: string, type: string) => void;
+  onSave: (record: any) => void;
+  onSignOpen: () => void;
+  onCamOpen: () => void;
+  signature: string;
+  photo: string | null;
+}
+
+const CLOTHING_SIZES = ['44', '46', '48', '50', '52', '54', '56', '58', '60', '62'];
+const JACKET_SIZES = ['M', 'L', 'XL', 'XXL', '3XL', '4XL'];
+const SHOE_SIZES = ['38', '39', '40', '41', '42', '43', '44', '45', '46'];
+const HELMET_COLORS = [
+  { id: 'white', label: 'سفید', class: 'bg-white' },
+  { id: 'red', label: 'قرمز', class: 'bg-red-500' },
+  { id: 'yellow', label: 'زرد', class: 'bg-yellow-400' },
+  { id: 'green', label: 'سبز', class: 'bg-green-500' }
+];
+
+export const SafetyIssuanceForm: React.FC<SafetyIssuanceFormProps> = ({ 
+  recipients, currentUser, history, onRecordClick, onEdit, onDelete, onSave,
+  onSignOpen, onCamOpen, signature, photo
+}) => {
+  const [recipient, setRecipient] = useState('');
+  const [showRecipientDrop, setShowRecipientDrop] = useState(false);
+  const [manualDocNum, setManualDocNum] = useState('');
+  const [basket, setBasket] = useState<any[]>([]);
+  const [date, setDate] = useState(new Date().toLocaleDateString('fa-IR', { calendar: 'persian' }));
+  const [qty, setQty] = useState(1);
+  const [selectedSize, setSelectedSize] = useState('50');
+  const [selectedJacketSize, setSelectedJacketSize] = useState('XL');
+  const [selectedWarmClothSize, setSelectedWarmClothSize] = useState('XL');
+  const [selectedShoeSize, setSelectedShoeSize] = useState('42');
+  const [selectedHelmetColor, setSelectedHelmetColor] = useState('white');
+  const [visionType, setVisionType] = useState('DAY');
+  const [notes, setNotes] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const top10 = useMemo(() => {
+    const counts: Record<string, number> = {};
+    history.filter((h) => h.recipientName === recipient).forEach((h) => {
+      h.items.forEach((it) => counts[it.productDescription] = (counts[it.productDescription] || 0) + it.quantity);
+    });
+    return Object.entries(counts).sort((a, b) => (b[1] as number) - (a[1] as number)).slice(0, 10);
+  }, [history, recipient]);
+
+  const personHistory = useMemo(() => history.filter(h => h.recipientName === recipient), [history, recipient]);
+
+  const ITEMS = [
+    { n: 'لباس کار', type: 'CLOTH', icon: Briefcase },
+    { n: 'کفش ایمنی', type: 'SHOE', icon: HardHat },
+    { n: 'کلاه ایمنی', type: 'HELMET', icon: ShieldCheck },
+    { n: 'کاپشن', type: 'JACKET', icon: Zap },
+    { n: 'لباس گرم', type: 'WARM_CLOTH', icon: Wind },
+    { n: 'عینک', type: 'VISION', icon: Eye },
+    { n: 'ماسک فیلتر دار', type: 'MASK', icon: Wind }
+  ];
+
+  const addToBasket = (it: any) => {
+    let specs = '';
+    if (it.type === 'CLOTH') specs = `سایز لباس کار: ${selectedSize}`;
+    if (it.type === 'SHOE') specs = `سایز کفش ایمنی: ${selectedShoeSize}`;
+    if (it.type === 'JACKET') specs = `سایز کاپشن: ${selectedJacketSize}`;
+    if (it.type === 'WARM_CLOTH') specs = `سایز لباس گرم: ${selectedWarmClothSize}`;
+    if (it.type === 'HELMET') specs = `رنگ کلاه ایمنی: ${HELMET_COLORS.find(c => c.id === selectedHelmetColor)?.label}`;
+    if (it.type === 'VISION') specs = `مدل عینک: ${visionType === 'DAY' ? 'دید در روز' : 'دید در شب'}`;
+    if (it.type === 'MASK') specs = `استاندارد ماسک فیلتر دار`;
+
+    setBasket([{ productDescription: it.n, quantity: qty, unit: 'عدد', technicalSpecs: specs, id: Date.now() }, ...basket]);
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-enter">
+      <div className="lg:col-span-8 diamond-neon p-6 rounded-[2rem] border-emerald-500/20 space-y-5 shadow-xl">
+        <h2 className="text-xl font-black text-emerald-400 ultra-glow-text flex items-center gap-3 uppercase tracking-widest"><HardHat size={28}/> تجهیزات ایمنی (S.M HSE Core)</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="space-y-1 relative">
+            <label className="text-[10px] opacity-40 font-black uppercase">تحویل‌گیرنده</label>
+            <div className="relative">
+              <input placeholder="نام پرسنل..." value={recipient}
+                onChange={e=>{setRecipient(e.target.value);setShowRecipientDrop(true);}}
+                onFocus={()=>setShowRecipientDrop(true)}
+                onBlur={()=>setTimeout(()=>setShowRecipientDrop(false),200)}
+                className="w-full input-glass p-3 font-black shadow-inner pl-10" />
+              {recipient && (<button onClick={() => setRecipient('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-red-500 transition-all"><X size={16} /></button>)}
+              {showRecipientDrop && (
+                <div style={{position:'absolute',top:'calc(100% + 6px)',right:0,left:0,zIndex:999,background:'rgba(10,12,28,0.97)',border:'1px solid rgba(16,185,129,0.3)',borderRadius:14,overflow:'hidden',boxShadow:'0 20px 60px rgba(0,0,0,0.8)',backdropFilter:'blur(20px)',maxHeight:260,overflowY:'auto'}}>
+                  <div style={{padding:'6px 12px',borderBottom:'1px solid rgba(255,255,255,0.05)',fontSize:'9px',color:'rgba(255,255,255,0.3)',fontWeight:900,letterSpacing:'0.2em',textTransform:'uppercase'}}>انتخاب پرسنل</div>
+                  {recipients.filter(r=>r.fullName.toLowerCase().includes(recipient.toLowerCase())).map((r,i)=>(
+                    <div key={r.fullName} onMouseDown={()=>{setRecipient(r.fullName);setShowRecipientDrop(false);}}
+                      style={{padding:'11px 14px',cursor:'pointer',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',gap:10,background:i%2===0?'rgba(16,185,129,0.02)':'transparent',transition:'background 0.15s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.background='rgba(16,185,129,0.1)')}
+                      onMouseLeave={e=>(e.currentTarget.style.background=i%2===0?'rgba(16,185,129,0.02)':'transparent')}
+                    >
+                      <div style={{width:30,height:30,borderRadius:9,background:'rgba(16,185,129,0.15)',border:'1px solid rgba(16,185,129,0.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:900,color:'#6ee7b7',flexShrink:0}}>{r.fullName.charAt(0)}</div>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:700,color:'#fff'}}>{r.fullName}</div>
+                        {r.orgUnit&&<div style={{fontSize:10,color:'rgba(255,255,255,0.3)',marginTop:2}}>{r.orgUnit}</div>}
+                      </div>
+                    </div>
+                  ))}
+                  {recipients.filter(r=>r.fullName.toLowerCase().includes(recipient.toLowerCase())).length===0&&(
+                    <div style={{padding:'18px',textAlign:'center',color:'rgba(255,255,255,0.2)',fontSize:11,fontWeight:700}}>نتیجه‌ای یافت نشد</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] opacity-40 font-black uppercase">شماره سند</label>
+            <input placeholder="PPE-XXXX..." value={manualDocNum} onChange={e=>setManualDocNum(e.target.value)} className="w-full input-glass p-3 font-black shadow-inner" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] opacity-40 font-black uppercase">تعداد</label>
+            <input type="number" value={qty} onChange={e=>setQty(parseInt(e.target.value))} className="w-full input-glass p-3 text-center font-black text-emerald-400 shadow-inner" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] opacity-40 font-black uppercase">تاریخ ثبت</label>
+            <input type="text" value={date} onChange={e=>{const toFa=(s:string)=>s.replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[parseInt(d)]);setDate(toFa(e.target.value));}} className="w-full input-glass p-3 text-sm text-center font-black shadow-inner" placeholder="۱۴۰۴/۰۱/۰۱" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-black/40 p-6 rounded-2xl border border-white/5 shadow-inner">
+          <div className="space-y-5">
+            <div className="space-y-2 pb-4 border-b border-white/5">
+              <span className="text-[9px] text-emerald-400 font-black uppercase tracking-widest block mb-2 flex items-center gap-2"><Briefcase size={12}/> انتخاب سایز لباس کار:</span>
+              <div className="flex flex-wrap gap-2">
+                {CLOTHING_SIZES.map(s=>(<button key={s} onClick={()=>setSelectedSize(s)} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black border transition-all ${selectedSize===s?'neon-active-emerald scale-105':'opacity-30 border-white/10 hover:opacity-100'}`}>{s}</button>))}
+              </div>
+            </div>
+            <div className="space-y-2 pb-4 border-b border-white/5">
+              <span className="text-[9px] text-cyan-400 font-black uppercase tracking-widest block mb-2 flex items-center gap-2"><Zap size={12}/> انتخاب سایز کاپشن:</span>
+              <div className="flex flex-wrap gap-2">
+                {JACKET_SIZES.map(s=>(<button key={s} onClick={()=>setSelectedJacketSize(s)} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black border transition-all ${selectedJacketSize===s?'neon-active-cyan scale-105':'opacity-30 border-white/10 hover:opacity-100'}`}>{s}</button>))}
+              </div>
+            </div>
+            <div className="space-y-2 pb-4 border-b border-white/5">
+              <span className="text-[9px] text-blue-400 font-black uppercase tracking-widest block mb-2 flex items-center gap-2"><Wind size={12}/> انتخاب سایز لباس گرم:</span>
+              <div className="flex flex-wrap gap-2">
+                {JACKET_SIZES.map(s=>(<button key={s} onClick={()=>setSelectedWarmClothSize(s)} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black border transition-all ${selectedWarmClothSize===s?'neon-active-indigo scale-105':'opacity-30 border-white/10 hover:opacity-100'}`}>{s}</button>))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-5">
+            <div className="space-y-2 pb-4 border-b border-white/5">
+              <span className="text-[9px] text-orange-400 font-black uppercase tracking-widest block mb-2 flex items-center gap-2"><HardHat size={12}/> انتخاب سایز کفش ایمنی:</span>
+              <div className="flex flex-wrap gap-2">
+                {SHOE_SIZES.map(s=>(<button key={s} onClick={()=>setSelectedShoeSize(s)} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black border transition-all ${selectedShoeSize===s?'neon-active-orange scale-105':'opacity-30 border-white/10 hover:opacity-100'}`}>{s}</button>))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-4 items-center">
+                <span className="text-[9px] opacity-40 font-black uppercase">کلاه:</span>
+                <div className="flex gap-3">{HELMET_COLORS.map(c=><button key={c.id} onClick={()=>setSelectedHelmetColor(c.id)} className={`w-8 h-8 rounded-full border-2 transition-all ${c.class} ${selectedHelmetColor===c.id?'border-white shadow-xl scale-125 ring-2 ring-emerald-500/20':'border-transparent opacity-20 hover:opacity-50'}`}></button>)}</div>
+              </div>
+              <div className="flex gap-3 items-center">
+                <span className="text-[9px] opacity-40 font-black uppercase">عینک:</span>
+                <button onClick={()=>setVisionType('DAY')} className={`px-4 py-2 rounded-xl text-[10px] font-black border flex items-center gap-2 transition-all ${visionType==='DAY'?'neon-active-cyan scale-105':'opacity-30 border-white/10 hover:opacity-100'}`}><Sun size={14}/> روز</button>
+                <button onClick={()=>setVisionType('NIGHT')} className={`px-4 py-2 rounded-xl text-[10px] font-black border flex items-center gap-2 transition-all ${visionType==='NIGHT'?'neon-active-indigo scale-105':'opacity-30 border-white/10 hover:opacity-100'}`}><Moon size={14}/> شب</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">{ITEMS.map(it=>(<button key={it.n} onClick={()=>addToBasket(it)} className="diamond-neon p-4 rounded-2xl font-black border border-white/5 hover:border-emerald-500 hover:scale-105 transition-all text-[11px] flex flex-col items-center gap-3 shadow-lg group"><div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-all"><it.icon size={22}/></div> {it.n}</button>))}</div>
+        
+        <div className="space-y-1"><label className="text-[10px] opacity-40 font-black uppercase">توضیحات تکمیلی HSE</label><textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="ملاحظات ایمنی، وضعیت ظاهری یا دلایل تعویض..." className="w-full input-glass p-4 h-24 font-medium text-[12px] leading-relaxed shadow-inner" /></div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button onClick={onSignOpen} className={`py-3.5 rounded-2xl border border-dashed transition-all flex items-center justify-center gap-3 font-black text-[11px] uppercase tracking-widest shadow-lg ${signature ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10' : 'border-white/20 text-white/40 hover:bg-white/5'}`}><PenTool size={18}/> {signature ? 'امضاء ثبت شد' : 'ثبت امضای دیجیتال'}</button>
+          <button onClick={onCamOpen} className={`py-3.5 rounded-2xl border border-dashed transition-all flex items-center justify-center gap-3 font-black text-[11px] uppercase tracking-widest shadow-lg ${photo ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' : 'border-white/20 text-white/40 hover:bg-white/5'}`}><Camera size={18}/> {photo ? 'تصویر ثبت شد' : 'تصویربرداری ضمیمه'}</button>
+        </div>
+        <div className="bg-black/40 p-5 rounded-2xl space-y-3 min-h-[80px] border border-white/5 shadow-inner">{basket.map(it=>(<div key={it.id} className="flex justify-between items-center bg-white/5 p-3 px-5 rounded-2xl border border-white/5 transition-all hover:bg-white/10 shadow-sm"><div className="flex flex-col"><span className="text-[13px] font-black text-emerald-400">{it.productDescription}</span><span className="text-[10px] opacity-50 font-black">{it.technicalSpecs}</span></div><button onClick={()=>setBasket(basket.filter(x=>x.id!==it.id))} className="text-red-500 hover:scale-125 transition-all p-2"><X size={20}/></button></div>))}</div>
+        <button onClick={()=>{ if(!recipient || !basket.length) { toast.warning('پرسنل و حداقل یک قلم را وارد کنید'); return; } onSave({ id: Date.now().toString(), docNumber: manualDocNum || `PPE-${Date.now().toString().slice(-4)}`, items: basket, recipientName: recipient, orgUnit: '', delivererName: currentUser.fullName, date: date, timestamp: Date.now(), type:'PPE', signature, photo, notes }); setBasket([]); setNotes(''); setManualDocNum(''); toast.success('پرونده ایمنی با موفقیت بایگانی شد'); }} className="w-full bg-emerald-600 py-4 rounded-[1.5rem] font-black text-xl shadow-2xl shadow-emerald-600/20 active:scale-95 transition-all border-t border-white/20 uppercase tracking-[0.2em]">تایید و بایگانی نهایی HSE</button>
+      </div>
+
+      <div className="lg:col-span-4 space-y-6">
+        <div className="diamond-neon p-6 rounded-3xl bg-emerald-950/20 border-emerald-500/10 shadow-xl">
+          <h4 className="text-[11px] font-black text-emerald-400 mb-5 uppercase tracking-widest flex items-center gap-3 border-b border-white/5 pb-3"><Trophy size={16}/> اقلام مصرفی فرد</h4>
+          <div className="flex flex-wrap gap-2">{top10.map(([n,c])=>(<div key={n} className="bg-white/5 px-3 py-1.5 rounded-xl text-[11px] font-black border border-white/5 hover:border-emerald-500/30 transition-all shadow-sm">{n} | <span className="text-emerald-400 font-bold">{c}</span></div>))}</div>
+        </div>
+
+        {/* ── کادر سوابق جدید HSE ── */}
+        <div className="diamond-neon p-5 rounded-3xl border-emerald-500/10 shadow-xl" dir="rtl">
+          <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+            <h4 className="text-[11px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-3">
+              <History size={16}/> سوابق آرشیو HSE
+            </h4>
+            {personHistory.length > 0 && (
+              <span className="bg-emerald-500/20 text-emerald-300 text-[9px] font-black px-2 py-1 rounded-full border border-emerald-500/30">
+                {personHistory.length} پرونده
+              </span>
+            )}
+          </div>
+
+          {personHistory.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4 opacity-10">
+              <FileText size={48}/>
+              <span className="text-[11px] font-black uppercase tracking-[0.3em]">داده‌ای یافت نشد</span>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[70vh] overflow-y-auto custom-scrollbar pl-1">
+              {personHistory.map((h, idx) => {
+                const isExpanded = expandedId === h.id;
+                const totalItems = h.items.reduce((s: number, it: any) => s + it.quantity, 0);
+                return (
+                  <div
+                    key={h.id}
+                    className={`rounded-2xl border transition-all duration-300 overflow-hidden shadow-md group
+                      ${isExpanded
+                        ? 'border-emerald-500/60 bg-emerald-950/50 shadow-[0_0_20px_rgba(16,185,129,0.12)]'
+                        : 'border-white/8 bg-black/30 hover:border-emerald-500/30 hover:bg-emerald-950/20'
+                      }`}
+                  >
+                    {/* هدر کارت */}
+                    <div
+                      className="flex items-center gap-3 p-3 cursor-pointer"
+                      onClick={() => setExpandedId(isExpanded ? null : h.id)}
+                    >
+                      <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-black flex-shrink-0 transition-all
+                        ${isExpanded ? 'bg-emerald-600 text-white' : 'bg-white/5 text-white/40'}`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-emerald-300 font-mono text-[11px] font-black"># {h.docNumber}</span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-[9px] text-white/40 flex items-center gap-1">
+                            <Clock size={9}/> {h.date}
+                          </span>
+                          <span className="text-[9px] text-emerald-400/60 flex items-center gap-1">
+                            <Package size={9}/> {totalItems} آیتم
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onEdit(h); }}
+                            className="text-orange-400 p-1.5 hover:bg-orange-400/10 rounded-lg transition-all"
+                          >
+                            <Edit3 size={12}/>
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(h.id, h.type); }}
+                            className="text-red-500 p-1.5 hover:bg-red-500/10 rounded-lg transition-all"
+                          >
+                            <Trash2 size={12}/>
+                          </button>
+                        </div>
+                        <div className={`text-white/30 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                          <ChevronDown size={14}/>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* جزئیات باز شونده */}
+                    {isExpanded && (
+                      <div className="border-t border-white/8 mx-3 pt-3 pb-3 animate-enter">
+                        <div className="space-y-2 mb-3">
+                          {h.items.map((it: any, idx2: number) => (
+                            <div
+                              key={idx2}
+                              className="flex items-center justify-between bg-emerald-900/10 px-3 py-2 rounded-xl border border-emerald-500/10"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></div>
+                                <div className="min-w-0">
+                                  <div className="text-[11px] font-black text-white/80 truncate">{it.productDescription}</div>
+                                  {it.technicalSpecs && (
+                                    <div className="text-[9px] text-white/30 truncate">{it.technicalSpecs}</div>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-emerald-400 font-black text-[11px] flex-shrink-0 mr-2">
+                                {it.quantity} عدد
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-white/3 rounded-xl p-2 border border-white/5">
+                            <span className="text-[8px] text-white/30 font-black uppercase block mb-1">ثبت کننده</span>
+                            <span className="text-[10px] font-black text-white/70 flex items-center gap-1">
+                              <UserIcon size={10}/> {h.delivererName}
+                            </span>
+                          </div>
+                          <div className="bg-white/3 rounded-xl p-2 border border-white/5">
+                            <span className="text-[8px] text-white/30 font-black uppercase block mb-1">تاریخ</span>
+                            <span className="text-[10px] font-black text-white/70">{h.date}</span>
+                          </div>
+                        </div>
+
+                        {h.notes && (
+                          <div className="bg-emerald-900/20 rounded-xl p-2 border border-emerald-500/10 mb-3">
+                            <span className="text-[8px] text-emerald-400/60 font-black uppercase block mb-1">توضیحات</span>
+                            <span className="text-[10px] text-white/60">{h.notes}</span>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => onRecordClick(h)}
+                          className="w-full py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600/40 transition-all flex items-center justify-center gap-2"
+                        >
+                          <FileText size={12}/> مشاهده پرونده کامل
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Sun: React.FC<any> = ({size}) => <div style={{width:size, height:size}} className="bg-yellow-400 rounded-full shadow-[0_0_10px_#facc15]"></div>;
+const Moon: React.FC<any> = ({size}) => <div style={{width:size, height:size}} className="bg-indigo-400 rounded-full shadow-[0_0_10px_#818cf8]"></div>;
